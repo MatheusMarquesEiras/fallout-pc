@@ -23,7 +23,7 @@ DRY_RUN=false
 ASSUME_YES=false
 SKIP_DOCKER_VOLUMES=false
 ONLY_LIST=""
-KNOWN_TARGETS="pip uv npm yarn pnpm go cargo ccache sccache vcpkg msys2 vs git huggingface docker temp"
+KNOWN_TARGETS="pip uv npm yarn pnpm go cargo ccache sccache vcpkg msys2 vs git huggingface ollama docker temp"
 
 # ---------------------------------------------------------------------------
 # cores / helpers de output
@@ -114,7 +114,7 @@ OPÇÕES:
       --skip-docker-volumes  pula a limpeza de volumes docker (evita risco de apagar dados)
       --only <lista>         roda só os alvos da lista, separados por vírgula
                               alvos: pip,uv,npm,yarn,pnpm,go,cargo,ccache,sccache,
-                                     vcpkg,msys2,vs,git,huggingface,docker,temp
+                                     vcpkg,msys2,vs,git,huggingface,ollama,docker,temp
   -h, --help                 mostra essa ajuda
 
 NUNCA TOCA EM LOGIN/CREDENCIAL:
@@ -395,6 +395,38 @@ clean_huggingface() {
 }
 
 # ---------------------------------------------------------------------------
+# limpador — ollama (cache de modelos baixados)
+# ---------------------------------------------------------------------------
+clean_ollama() {
+  wanted ollama || return 0
+  section "Ollama (cache de modelos)"
+  local ollama_home="$HOME/.ollama"
+  if [[ ! -d "$ollama_home" ]]; then
+    skip "ollama (sem cache em $ollama_home)"
+    return
+  fi
+
+  local models_dir="${OLLAMA_MODELS:-$ollama_home/models}"
+  local freed_any=false
+  for sub_path in "$models_dir/blobs" "$models_dir/manifests" "$ollama_home/cache"; do
+    if [[ -d "$sub_path" ]]; then
+      run rm -rf "${sub_path:?}" && ok "removido: $sub_path" && freed_any=true
+    fi
+  done
+
+  if [[ -f "$ollama_home/id_ed25519" ]]; then
+    keep "$ollama_home/id_ed25519 (chave de identidade pra publicar modelos no ollama.com)"
+  fi
+  keep "$ollama_home/history (histórico de conversas)"
+
+  if $freed_any; then
+    echo -e "  ${CYAN}dica:${RESET} os modelos precisam ser baixados de novo com 'ollama pull <modelo>'"
+  else
+    warn "ollama achado em $ollama_home, mas sem cache de modelos pra limpar"
+  fi
+}
+
+# ---------------------------------------------------------------------------
 # limpador — docker
 # ---------------------------------------------------------------------------
 clean_docker() {
@@ -554,6 +586,7 @@ clean_msys2
 clean_visual_studio
 clean_git
 clean_huggingface
+clean_ollama
 clean_docker
 clean_temp
 

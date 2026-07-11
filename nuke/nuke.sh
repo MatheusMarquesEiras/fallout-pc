@@ -31,8 +31,9 @@ KNOWN_TARGETS="pip uv npm yarn pnpm go cargo ccache sccache vcpkg msys2 vs git h
 if [[ -t 1 ]]; then
   BOLD=$'\033[1m'; RESET=$'\033[0m'
   RED=$'\033[31m'; GREEN=$'\033[32m'; YELLOW=$'\033[33m'; CYAN=$'\033[36m'
+  ORANGE=$'\033[38;5;208m'
 else
-  BOLD=''; RESET=''; RED=''; GREEN=''; YELLOW=''; CYAN=''
+  BOLD=''; RESET=''; RED=''; GREEN=''; YELLOW=''; CYAN=''; ORANGE=''
 fi
 
 section() { echo -e "\n${BOLD}${CYAN}▶ $*${RESET}"; }
@@ -516,7 +517,16 @@ esac
 # ---------------------------------------------------------------------------
 # banner
 # ---------------------------------------------------------------------------
-echo -e "${BOLD}${CYAN}☢  N U K E . S H  ☢${RESET}"
+echo -e "${BOLD}${ORANGE}"
+cat <<'NUKEART'
+███╗   ██╗ ██╗   ██╗ ██╗  ██╗ ███████╗
+████╗  ██║ ██║   ██║ ██║ ██╔╝ ██╔════╝
+██╔██╗ ██║ ██║   ██║ █████╔╝  █████╗
+██║╚██╗██║ ██║   ██║ ██╔═██╗  ██╔══╝
+██║ ╚████║ ╚██████╔╝ ██║  ██╗ ███████╗
+╚═╝  ╚═══╝  ╚═════╝  ╚═╝  ╚═╝ ╚══════╝
+NUKEART
+echo -e "${RESET}${BOLD}${CYAN}          ☢  cache & temp cleaner  ☢${RESET}"
 echo -e "ambiente detectado: ${BOLD}${OS}${RESET}"
 $DRY_RUN && echo -e "${YELLOW}(modo dry-run: nada será apagado de verdade)${RESET}"
 

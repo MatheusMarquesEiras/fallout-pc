@@ -560,6 +560,11 @@ cat <<'NUKEART'
 NUKEART
 echo -e "${RESET}${BOLD}${CYAN}          ☢  cache & temp cleaner  ☢${RESET}"
 echo -e "ambiente detectado: ${BOLD}${OS}${RESET}"
+if [[ "$OS" == "wsl" ]]; then
+  warn "rodando dentro do WSL: só limpa o cache do lado Linux (+ temp/VS do"
+  warn "Windows). Ferramentas instaladas só no Windows (fora do WSL) não são"
+  warn "vistas daqui — pra limpar essas, rode via Git Bash em vez do WSL."
+fi
 $DRY_RUN && echo -e "${YELLOW}(modo dry-run: nada será apagado de verdade)${RESET}"
 
 # ---------------------------------------------------------------------------

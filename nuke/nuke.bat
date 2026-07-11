@@ -25,15 +25,19 @@ if not exist "%~dp0nuke.sh" (
     exit /b 1
 )
 
-rem --- procura um bash instalado (Git Bash ou WSL) ---
+rem --- procura bash instalado, priorizando o Git Bash: ele enxerga os     ---
+rem --- programas instalados no Windows (pip/npm/go/cargo/...). Se cair no ---
+rem --- WSL (via "where bash"), so vai limpar o lado Linux do WSL.        ---
 set "BASH_EXE="
 
-where bash >nul 2>nul
-if %errorlevel%==0 set "BASH_EXE=bash"
-
-if not defined BASH_EXE if exist "%ProgramFiles%\Git\bin\bash.exe" set "BASH_EXE=%ProgramFiles%\Git\bin\bash.exe"
+if exist "%ProgramFiles%\Git\bin\bash.exe" set "BASH_EXE=%ProgramFiles%\Git\bin\bash.exe"
 if not defined BASH_EXE if exist "%ProgramFiles(x86)%\Git\bin\bash.exe" set "BASH_EXE=%ProgramFiles(x86)%\Git\bin\bash.exe"
 if not defined BASH_EXE if exist "%LocalAppData%\Programs\Git\bin\bash.exe" set "BASH_EXE=%LocalAppData%\Programs\Git\bin\bash.exe"
+
+if not defined BASH_EXE (
+    where bash >nul 2>nul
+    if %errorlevel%==0 set "BASH_EXE=bash"
+)
 
 if not defined BASH_EXE (
     echo [ERRO] Nao encontrei bash instalado nesta maquina.

@@ -23,7 +23,7 @@ DRY_RUN=false
 ASSUME_YES=false
 SKIP_DOCKER_VOLUMES=false
 ONLY_LIST=""
-KNOWN_TARGETS="pip uv npm yarn pnpm go cargo ccache sccache vcpkg msys2 vs git huggingface ollama docker temp"
+KNOWN_TARGETS="pip uv npm yarn pnpm deno bun go cargo php java ccache sccache vcpkg msys2 vs git huggingface ollama docker temp"
 
 # ---------------------------------------------------------------------------
 # cores / helpers de output
@@ -113,8 +113,9 @@ OPÇÕES:
   -y, --yes                  não pergunta confirmação (assume "sim" nos passos destrutivos)
       --skip-docker-volumes  pula a limpeza de volumes docker (evita risco de apagar dados)
       --only <lista>         roda só os alvos da lista, separados por vírgula
-                              alvos: pip,uv,npm,yarn,pnpm,go,cargo,ccache,sccache,
-                                     vcpkg,msys2,vs,git,huggingface,ollama,docker,temp
+                              alvos: pip,uv,npm,yarn,pnpm,deno,bun,go,cargo,php,java,
+                                     ccache,sccache,vcpkg,msys2,vs,git,huggingface,
+                                     ollama,docker,temp
   -h, --help                 mostra essa ajuda
 
 NUNCA TOCA EM LOGIN/CREDENCIAL:
@@ -183,6 +184,44 @@ clean_pnpm() {
   fi
 }
 
+clean_deno() {
+  wanted deno || return 0
+  section "Deno"
+  if ! has deno; then
+    skip "deno"
+    return
+  fi
+
+  local deno_dir="${DENO_DIR:-}"
+  if [[ -z "$deno_dir" ]]; then
+    case "$OS" in
+      macos) deno_dir="$HOME/Library/Caches/deno" ;;
+      wsl|gitbash)
+        local win_local
+        win_local=$(get_win_localappdata)
+        [[ -n "$win_local" ]] && deno_dir="$win_local/deno"
+        ;;
+      *) deno_dir="$HOME/.cache/deno" ;;
+    esac
+  fi
+
+  if [[ -n "$deno_dir" && -d "$deno_dir" ]]; then
+    run rm -rf "${deno_dir:?}" && ok "removido cache do deno: $deno_dir"
+  else
+    warn "deno achado, mas sem cache em ${deno_dir:-local desconhecido}"
+  fi
+}
+
+clean_bun() {
+  wanted bun || return 0
+  section "bun"
+  if has bun; then
+    run bun pm cache rm && ok "bun pm cache rm" || fail "bun pm cache rm falhou"
+  else
+    skip "bun"
+  fi
+}
+
 clean_go() {
   wanted go || return 0
   section "go"
@@ -209,6 +248,37 @@ clean_cargo() {
   else
     skip "cargo/rust"
   fi
+}
+
+clean_php() {
+  wanted php || return 0
+  section "PHP (Composer)"
+  if has composer; then
+    run composer clear-cache && ok "composer clear-cache" || fail "composer clear-cache falhou"
+  else
+    skip "composer"
+  fi
+}
+
+clean_java() {
+  wanted java || return 0
+  section "Java (Maven/Gradle)"
+  local found=false
+
+  local m2_repo="$HOME/.m2/repository"
+  if [[ -d "$m2_repo" ]]; then
+    run rm -rf "${m2_repo:?}" && ok "removido cache do Maven: $m2_repo" && found=true
+  fi
+  if [[ -f "$HOME/.m2/settings.xml" ]]; then
+    keep "~/.m2/settings.xml (pode ter credencial de repositório privado)"
+  fi
+
+  local gradle_caches="$HOME/.gradle/caches"
+  if [[ -d "$gradle_caches" ]]; then
+    run rm -rf "${gradle_caches:?}" && ok "removido cache do Gradle: $gradle_caches" && found=true
+  fi
+
+  $found || skip "java (sem cache do Maven/Gradle encontrado)"
 }
 
 # ---------------------------------------------------------------------------
@@ -582,8 +652,12 @@ clean_uv
 clean_npm
 clean_yarn
 clean_pnpm
+clean_deno
+clean_bun
 clean_go
 clean_cargo
+clean_php
+clean_java
 clean_ccache
 clean_sccache
 clean_vcpkg

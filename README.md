@@ -15,8 +15,9 @@
 
 Um script (`nuke.sh`) que limpa cache de ferramentas de desenvolvimento —
 pip, uv, npm, yarn, pnpm, go, cargo/rust, ccache, sccache, vcpkg, MSYS2,
-Visual Studio/NuGet, git, GitHub CLI, Hugging Face — além de containers,
-imagens e build cache do Docker, e arquivos temporários do sistema.
+Visual Studio/NuGet, git, GitHub CLI, Hugging Face, Ollama — além de
+containers, imagens e build cache do Docker, e arquivos temporários do
+sistema.
 
 A ideia é simples: depois de meses de uso, essas ferramentas acumulam
 gigabytes de cache que ninguém olha de novo. O script libera esse espaço,
@@ -25,9 +26,10 @@ com um preview de tudo antes de apagar qualquer coisa de verdade.
 ## Regra inegociável
 
 O script **nunca** mexe em login, senha ou token de nada: credenciais do
-git, chaves SSH, login do `gh` CLI, token do Hugging Face, login do
-Docker, `~/.npmrc`, `~/.cargo/credentials.toml`. Só cache e build
-artifact — coisa que se reconstrói sozinha.
+git, chaves SSH, login do `gh` CLI, token do Hugging Face, chave de
+identidade do Ollama, login do Docker, `~/.npmrc`,
+`~/.cargo/credentials.toml`. Só cache e build artifact — coisa que se
+reconstrói sozinha.
 
 ## Como usar
 
@@ -67,6 +69,7 @@ dado de verdade (não é só cache), então só confirme se tiver certeza.
 nuke/            script principal + lançadores por sistema operacional
 assets/logo/     identidade visual do projeto
 CLAUDE.md        contexto e convenções de desenvolvimento do projeto
+LICENSE          licença MIT
 ```
 
 ## Sobre o desenvolvimento
@@ -82,4 +85,4 @@ Git Bash e WSL), não apenas aceitando o que a IA gerava sem checar.
 
 ## Licença
 
-Uso livre, sem garantias.
+[MIT](LICENSE) — uso livre, sem garantias.

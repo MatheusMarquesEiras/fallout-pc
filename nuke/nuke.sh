@@ -117,10 +117,19 @@ read_scan_dirs() {
 
   if has jq; then
     jq -r '.scan_dirs[]? // empty' "$config_file" 2>/dev/null
-  else
-    grep -oE '^[[:space:]]*"([^"\\]|\\.)*"[[:space:]]*,?[[:space:]]*$' "$config_file" 2>/dev/null \
-      | sed -E 's/^[[:space:]]*"//; s/"[[:space:]]*,?[[:space:]]*$//'
+    return
   fi
+
+  # parser simples sem jq: achata o arquivo numa linha só (não depende de
+  # formatação — funciona tanto compacto ["a","b"] quanto bonito, um por
+  # linha), pega só o conteúdo entre os colchetes de "scan_dirs" e extrai
+  # cada string entre aspas de dentro.
+  local flat array_part
+  flat=$(tr '\n' ' ' < "$config_file")
+  array_part=$(printf '%s' "$flat" | sed -E 's/.*"scan_dirs"[[:space:]]*:[[:space:]]*\[([^]]*)\].*/\1/')
+  [[ "$array_part" == "$flat" ]] && return 0
+
+  printf '%s' "$array_part" | grep -oE '"([^"\\]|\\.)*"' | sed -E 's/^"//; s/"$//'
 }
 
 # path do %LOCALAPPDATA% do Windows, convertido pra path unix (WSL ou Git Bash). Vazio se não achar.

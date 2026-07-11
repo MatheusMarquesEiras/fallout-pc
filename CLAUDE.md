@@ -2,10 +2,11 @@
 
 ## O que é
 Script bash que limpa cache de ferramentas de dev (pip, uv, npm, yarn, pnpm,
-go, cargo/rust, ccache, sccache, vcpkg, MSYS2, Visual Studio/NuGet, git,
-GitHub CLI, Hugging Face, Ollama), Docker (containers/imagens/build
-cache/volumes) e temporários do sistema, pra liberar espaço em disco. Vai ser
-distribuído pra várias pessoas em Windows, macOS e Linux.
+deno, bun, go, cargo/rust, PHP/Composer, Java/Maven/Gradle, ccache, sccache,
+vcpkg, MSYS2, Visual Studio/NuGet, git, GitHub CLI, Hugging Face, Ollama),
+Docker (containers/imagens/build cache/volumes) e temporários do sistema,
+pra liberar espaço em disco. Vai ser distribuído pra várias pessoas em
+Windows, macOS e Linux.
 
 ## Arquivos
 Tudo que é distribuído pra quem for usar mora junto em `nuke/`:
@@ -24,7 +25,8 @@ do `nuke.sh` não quebrar se alguém commitar do Windows).
 O script NUNCA pode mexer em login/senha/token de nada: git credentials,
 SSH, gh CLI, token do Hugging Face, login do Docker, `~/.npmrc`,
 `~/.cargo/credentials.toml`, chave de identidade do Ollama
-(`~/.ollama/id_ed25519`). Qualquer mudança precisa preservar isso.
+(`~/.ollama/id_ed25519`), `~/.m2/settings.xml` (pode ter credencial de
+repositório Maven privado). Qualquer mudança precisa preservar isso.
 
 ## Convenções de teste
 - Validar sintaxe antes de considerar pronto: `bash -n nuke.sh` (e o mesmo

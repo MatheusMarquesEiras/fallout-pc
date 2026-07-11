@@ -14,10 +14,10 @@
 ## O que é
 
 Um script (`nuke.sh`) que limpa cache de ferramentas de desenvolvimento —
-pip, uv, npm, yarn, pnpm, go, cargo/rust, ccache, sccache, vcpkg, MSYS2,
-Visual Studio/NuGet, git, GitHub CLI, Hugging Face, Ollama — além de
-containers, imagens e build cache do Docker, e arquivos temporários do
-sistema.
+pip, uv, npm, yarn, pnpm, deno, bun, go, cargo/rust, PHP/Composer,
+Java (Maven/Gradle), ccache, sccache, vcpkg, MSYS2, Visual Studio/NuGet,
+git, GitHub CLI, Hugging Face, Ollama — além de containers, imagens e
+build cache do Docker, e arquivos temporários do sistema.
 
 A ideia é simples: depois de meses de uso, essas ferramentas acumulam
 gigabytes de cache que ninguém olha de novo. O script libera esse espaço,
@@ -28,8 +28,8 @@ com um preview de tudo antes de apagar qualquer coisa de verdade.
 O script **nunca** mexe em login, senha ou token de nada: credenciais do
 git, chaves SSH, login do `gh` CLI, token do Hugging Face, chave de
 identidade do Ollama, login do Docker, `~/.npmrc`,
-`~/.cargo/credentials.toml`. Só cache e build artifact — coisa que se
-reconstrói sozinha.
+`~/.cargo/credentials.toml`, `~/.m2/settings.xml`. Só cache e build
+artifact — coisa que se reconstrói sozinha.
 
 ## Como usar
 

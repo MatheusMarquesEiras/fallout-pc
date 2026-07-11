@@ -23,6 +23,8 @@ DRY_RUN=false
 ASSUME_YES=false
 SKIP_DOCKER_VOLUMES=false
 ONLY_LIST=""
+BANNER_ONLY=false
+NO_BANNER=false
 KNOWN_TARGETS="pip uv npm yarn pnpm deno bun go cargo php java ccache sccache vcpkg msys2 vs git huggingface ollama docker temp"
 
 # ---------------------------------------------------------------------------
@@ -31,10 +33,42 @@ KNOWN_TARGETS="pip uv npm yarn pnpm deno bun go cargo php java ccache sccache vc
 if [[ -t 1 ]]; then
   BOLD=$'\033[1m'; RESET=$'\033[0m'
   RED=$'\033[31m'; GREEN=$'\033[32m'; YELLOW=$'\033[33m'; CYAN=$'\033[36m'
-  ORANGE=$'\033[38;5;208m'
+  ORANGE=$'\033[38;5;208m'; PEACH=$'\033[38;5;216m'; WHITE=$'\033[97m'
 else
-  BOLD=''; RESET=''; RED=''; GREEN=''; YELLOW=''; CYAN=''; ORANGE=''
+  BOLD=''; RESET=''; RED=''; GREEN=''; YELLOW=''; CYAN=''; ORANGE=''; PEACH=''; WHITE=''
 fi
+
+NUKEART=(
+  '███╗   ██╗ ██╗   ██╗ ██╗  ██╗ ███████╗'
+  '████╗  ██║ ██║   ██║ ██║ ██╔╝ ██╔════╝'
+  '██╔██╗ ██║ ██║   ██║ █████╔╝  █████╗'
+  '██║╚██╗██║ ██║   ██║ ██╔═██╗  ██╔══╝'
+  '██║ ╚████║ ╚██████╔╝ ██║  ██╗ ███████╗'
+  '╚═╝  ╚═══╝  ╚═════╝  ╚═╝  ╚═╝ ╚══════╝'
+)
+
+# banner "NUKE" — num terminal de verdade, anima uma transição de branco pra
+# laranja (feedback visual de que o script ativou); sem TTY, imprime uma vez só.
+print_banner() {
+  if [[ ! -t 1 ]]; then
+    printf '%s\n' "${NUKEART[@]}"
+    echo "          cache & temp cleaner"
+    return
+  fi
+
+  local frame
+  for frame in "$WHITE" "$PEACH"; do
+    printf "${BOLD}${frame}"
+    printf '%s\n' "${NUKEART[@]}"
+    printf "${RESET}"
+    sleep 0.12
+    printf "\033[%dA" "${#NUKEART[@]}"
+  done
+  printf "${BOLD}${ORANGE}"
+  printf '%s\n' "${NUKEART[@]}"
+  printf "${RESET}"
+  echo -e "${BOLD}${CYAN}          ☢  cache & temp cleaner  ☢${RESET}"
+}
 
 section() { echo -e "\n${BOLD}${CYAN}▶ $*${RESET}"; }
 ok()      { echo -e "  ${GREEN}✔${RESET} $*"; }
@@ -587,6 +621,8 @@ while [[ $# -gt 0 ]]; do
     -n|--dry-run) DRY_RUN=true; shift ;;
     -y|--yes) ASSUME_YES=true; shift ;;
     --skip-docker-volumes) SKIP_DOCKER_VOLUMES=true; shift ;;
+    --banner-only) BANNER_ONLY=true; shift ;;
+    --no-banner) NO_BANNER=true; shift ;;
     --only)
       if [[ -z "${2:-}" ]]; then
         echo "erro: --only precisa de uma lista (ex: --only pip,npm,go)" >&2
@@ -603,6 +639,11 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+if $BANNER_ONLY; then
+  print_banner
+  exit 0
+fi
 
 if [[ -n "$ONLY_LIST" ]]; then
   IFS=',' read -ra _targets <<< "$ONLY_LIST"
@@ -628,16 +669,7 @@ esac
 # ---------------------------------------------------------------------------
 # banner
 # ---------------------------------------------------------------------------
-echo -e "${BOLD}${ORANGE}"
-cat <<'NUKEART'
-███╗   ██╗ ██╗   ██╗ ██╗  ██╗ ███████╗
-████╗  ██║ ██║   ██║ ██║ ██╔╝ ██╔════╝
-██╔██╗ ██║ ██║   ██║ █████╔╝  █████╗
-██║╚██╗██║ ██║   ██║ ██╔═██╗  ██╔══╝
-██║ ╚████║ ╚██████╔╝ ██║  ██╗ ███████╗
-╚═╝  ╚═══╝  ╚═════╝  ╚═╝  ╚═╝ ╚══════╝
-NUKEART
-echo -e "${RESET}${BOLD}${CYAN}          ☢  cache & temp cleaner  ☢${RESET}"
+$NO_BANNER || print_banner
 echo -e "ambiente detectado: ${BOLD}${OS}${RESET}"
 if [[ "$OS" == "wsl" ]]; then
   warn "rodando dentro do WSL: só limpa o cache do lado Linux (+ temp/VS do"

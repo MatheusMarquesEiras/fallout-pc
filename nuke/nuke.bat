@@ -4,19 +4,6 @@ chcp 65001 >nul
 
 cd /d "%~dp0"
 
-echo ███╗   ██╗ ██╗   ██╗ ██╗  ██╗ ███████╗
-echo ████╗  ██║ ██║   ██║ ██║ ██╔╝ ██╔════╝
-echo ██╔██╗ ██║ ██║   ██║ █████╔╝  █████╗
-echo ██║╚██╗██║ ██║   ██║ ██╔═██╗  ██╔══╝
-echo ██║ ╚████║ ╚██████╔╝ ██║  ██╗ ███████╗
-echo ╚═╝  ╚═══╝  ╚═════╝  ╚═╝  ╚═╝ ╚══════╝
-echo           limpeza de cache de dev e temporarios
-echo.
-echo Limpa cache de pip/uv/npm/cargo/docker/git/huggingface/ollama
-echo e temporarios do sistema pra liberar espaco em disco.
-echo Nao mexe em login, senha ou token de nada.
-echo.
-
 if not exist "%~dp0nuke.sh" (
     echo [ERRO] Nao achei o nuke.sh nesta pasta.
     echo Ele precisa estar junto com este arquivo .bat
@@ -52,10 +39,19 @@ if not defined BASH_EXE (
     exit /b 1
 )
 
+rem --- banner "NUKE" (um so, com a transicao de cor) via bash, ja que o ---
+rem --- console do cmd.exe nao anima cor tao bem quanto o bash faz.     ---
+"%BASH_EXE%" ./nuke.sh --banner-only
+echo.
+echo Limpa cache de pip/uv/npm/cargo/docker/git/huggingface/ollama
+echo e temporarios do sistema pra liberar espaco em disco.
+echo Nao mexe em login, senha ou token de nada.
+echo.
+
 set /p PREVIEW="Quer ver antes o que seria feito, sem apagar nada de verdade? [S/n] "
 if /i "%PREVIEW%"=="n" goto :runreal
 
-"%BASH_EXE%" ./nuke.sh --dry-run
+"%BASH_EXE%" ./nuke.sh --no-banner --dry-run
 echo.
 set /p CONFIRMAR="Quer rodar de verdade agora? [s/N] "
 if /i "%CONFIRMAR%"=="s" goto :runreal
@@ -63,7 +59,7 @@ echo Nada foi apagado.
 goto :fim
 
 :runreal
-"%BASH_EXE%" ./nuke.sh
+"%BASH_EXE%" ./nuke.sh --no-banner
 
 :fim
 echo.

@@ -1,13 +1,18 @@
 @echo off
 setlocal
+chcp 65001 >nul
 
 cd /d "%~dp0"
 
-echo ==================================================
-echo   NUKE - limpeza de cache de dev e temporarios
-echo ==================================================
+echo ███╗   ██╗ ██╗   ██╗ ██╗  ██╗ ███████╗
+echo ████╗  ██║ ██║   ██║ ██║ ██╔╝ ██╔════╝
+echo ██╔██╗ ██║ ██║   ██║ █████╔╝  █████╗
+echo ██║╚██╗██║ ██║   ██║ ██╔═██╗  ██╔══╝
+echo ██║ ╚████║ ╚██████╔╝ ██║  ██╗ ███████╗
+echo ╚═╝  ╚═══╝  ╚═════╝  ╚═╝  ╚═╝ ╚══════╝
+echo           limpeza de cache de dev e temporarios
 echo.
-echo Limpa cache de pip/uv/npm/cargo/docker/git/huggingface
+echo Limpa cache de pip/uv/npm/cargo/docker/git/huggingface/ollama
 echo e temporarios do sistema pra liberar espaco em disco.
 echo Nao mexe em login, senha ou token de nada.
 echo.

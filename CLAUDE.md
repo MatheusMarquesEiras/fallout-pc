@@ -4,15 +4,31 @@
 Script bash que limpa cache de ferramentas de dev (pip, uv, npm, yarn, pnpm,
 deno, bun, go, cargo/rust, PHP/Composer, Java/Maven/Gradle, ccache, sccache,
 vcpkg, MSYS2, Visual Studio/NuGet, git, GitHub CLI, Hugging Face, Ollama),
-Docker (containers/imagens/build cache/volumes) e temporários do sistema,
-pra liberar espaço em disco. Vai ser distribuído pra várias pessoas em
-Windows, macOS e Linux.
+Docker (containers/imagens/build cache/volumes), ambientes virtuais de
+projeto (via `nuke/config.json`, alvo `projects` — ver abaixo) e
+temporários do sistema, pra liberar espaço em disco. Vai ser distribuído
+pra várias pessoas em Windows, macOS e Linux.
+
+## Alvo "projects" (config.json) — regra permanente
+O alvo `projects` lê `nuke/config.json` (`scan_dirs`: lista de pastas
+absolutas) e, dentro delas, apaga pastas de ambiente/dependências de
+projeto (`PROJECT_ENV_NAMES` em `nuke.sh`: hoje `.venv venv node_modules
+vendor target build .gradle`), sempre pulando `.git`.
+
+**Toda vez que um limpador de linguagem/gerenciador novo for adicionado ao
+`nuke.sh`, adicionar também o nome da pasta de ambiente virtual/dependências
+dela em `PROJECT_ENV_NAMES`** (ex: ao adicionar suporte a um gerenciador
+Ruby, adicionar `vendor/bundle` ou o nome equivalente). Isso é regra fixa
+do projeto, não só desta sessão.
 
 ## Arquivos
 Tudo que é distribuído pra quem for usar mora junto em `nuke/`:
 - `nuke/nuke.sh` — script principal, roda em qualquer bash (Linux/macOS/WSL/Git Bash)
 - `nuke/nuke.command` — lançador duplo-clique pro macOS (abre Terminal, chama `./nuke.sh`)
 - `nuke/nuke.bat` — lançador duplo-clique pro Windows (acha Git Bash/WSL, chama `nuke.sh`)
+- `nuke/config.json` — onde o usuário lista `scan_dirs` pro alvo `projects`
+  (vazio por padrão; `nuke.sh` usa `jq` se tiver, senão um parser simples
+  que espera uma string por linha — ver `read_scan_dirs()`)
 
 `README.md` na raiz é a documentação pra quem for usar (substituiu o antigo
 `nuke/LEIA-ME.txt`). `imgs/` guarda a identidade visual do projeto.

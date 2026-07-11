@@ -63,10 +63,34 @@ dado de verdade (não é só cache), então só confirme se tiver certeza.
 ./nuke.sh --help                       # lista todas as opções
 ```
 
+### Limpando ambientes virtuais de projetos (opcional)
+
+Além do cache global de cada ferramenta, o script também pode procurar e
+apagar pastas de ambiente/dependências (`.venv`, `venv`, `node_modules`,
+`vendor`, `target`, `build`, `.gradle`) dentro de projetos seus — sem tocar
+em `.git` nem no resto do código.
+
+Pra ativar, edite [`nuke/config.json`](nuke/config.json) e liste as pastas
+onde seus projetos ficam (caminho absoluto, um por linha, aceita espaço no
+nome; use barra normal `/` mesmo no Windows):
+
+```json
+{
+  "scan_dirs": [
+    "C:/Users/seu-nome/Projetos",
+    "/home/seu-nome/dev"
+  ]
+}
+```
+
+Com isso configurado, `./nuke.sh` já inclui esse alvo automaticamente (ou
+rode só ele com `./nuke.sh --only projects`). Lista vazia = desativado.
+
 ## Estrutura do repositório
 
 ```
 nuke/            script principal + lançadores por sistema operacional
+nuke/config.json onde você lista as pastas de projetos (ambientes virtuais)
 imgs/            identidade visual do projeto
 CLAUDE.md        contexto e convenções de desenvolvimento do projeto
 LICENSE          licença MIT

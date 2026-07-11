@@ -63,12 +63,16 @@ dado de verdade (não é só cache), então só confirme se tiver certeza.
 ./nuke.sh --help                       # lista todas as opções
 ```
 
-### Limpando ambientes virtuais de projetos (opcional)
+### Limpando ambientes virtuais e cache de compilação de projetos (opcional)
 
 Além do cache global de cada ferramenta, o script também pode procurar e
-apagar pastas de ambiente/dependências (`.venv`, `venv`, `node_modules`,
-`vendor`, `target`, `build`, `.gradle`) dentro de projetos seus — sem tocar
-em `.git` nem no resto do código.
+apagar, dentro de projetos seus:
+- pastas de ambiente/dependências: `.venv`, `venv`, `node_modules`,
+  `vendor`, `target`, `build`, `.gradle`
+- cache de compilação/lint/teste gerado com o tempo: `__pycache__`,
+  `.pytest_cache`, `.mypy_cache`, `.ruff_cache`
+
+Sem tocar em `.git` nem no resto do código.
 
 Pra ativar, edite [`nuke/config.json`](nuke/config.json) e liste as pastas
 onde seus projetos ficam (caminho absoluto, um por linha, aceita espaço no
@@ -90,7 +94,7 @@ rode só ele com `./nuke.sh --only projects`). Lista vazia = desativado.
 
 ```
 nuke/            script principal + lançadores por sistema operacional
-nuke/config.json onde você lista as pastas de projetos (ambientes virtuais)
+nuke/config.json onde você lista as pastas de projetos (venvs/cache)
 imgs/            identidade visual do projeto
 CLAUDE.md        contexto e convenções de desenvolvimento do projeto
 LICENSE          licença MIT

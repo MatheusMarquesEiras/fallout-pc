@@ -12,14 +12,21 @@ pra várias pessoas em Windows, macOS e Linux.
 ## Alvo "projects" (config.json) — regra permanente
 O alvo `projects` lê `nuke/config.json` (`scan_dirs`: lista de pastas
 absolutas) e, dentro delas, apaga pastas de ambiente/dependências de
-projeto (`PROJECT_ENV_NAMES` em `nuke.sh`: hoje `.venv venv node_modules
-vendor target build .gradle`), sempre pulando `.git`.
+projeto E cache de compilação/lint/teste (`PROJECT_ENV_NAMES` em
+`nuke.sh`: hoje `.venv venv node_modules vendor target build .gradle
+__pycache__ .pytest_cache .mypy_cache .ruff_cache`), sempre pulando `.git`.
 
 **Toda vez que um limpador de linguagem/gerenciador novo for adicionado ao
 `nuke.sh`, adicionar também o nome da pasta de ambiente virtual/dependências
-dela em `PROJECT_ENV_NAMES`** (ex: ao adicionar suporte a um gerenciador
-Ruby, adicionar `vendor/bundle` ou o nome equivalente). Isso é regra fixa
-do projeto, não só desta sessão.
+E de qualquer cache de compilação/lint/teste que ela gere dentro do projeto
+(tipo o `__pycache__` do Python) em `PROJECT_ENV_NAMES`** (ex: ao adicionar
+suporte a um gerenciador Ruby, adicionar `vendor/bundle` ou equivalente).
+Isso é regra fixa do projeto, não só desta sessão.
+
+## Regra permanente: sempre atualizar o README
+Toda vez que algo for adicionado, mudado ou removido no script (novo
+limpador, nova flag, novo comportamento), atualizar o `README.md` na
+mesma leva de commits — não deixar a documentação pra depois.
 
 ## Arquivos
 Tudo que é distribuído pra quem for usar mora junto em `nuke/`:

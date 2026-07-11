@@ -103,11 +103,16 @@ wanted() {
   [[ ",${ONLY_LIST}," == *",$1,"* ]]
 }
 
-# Nomes de pasta de ambiente/dependência que cada linguagem cria dentro de um
-# projeto — 100% reconstruível (reinstala tudo de novo, sem perder código).
+# Nomes de pasta que cada linguagem/ferramenta cria dentro de um projeto —
+# ambiente virtual/dependências (.venv, node_modules...) OU cache de
+# compilação/lint/teste gerado com o tempo (__pycache__...) — sempre 100%
+# reconstruível (reinstala/recompila de novo, sem perder código nenhum).
 # IMPORTANTE: toda vez que uma linguagem nova ganhar um limpador no nuke.sh,
-# adicionar aqui o nome da pasta de ambiente virtual/dependências dela.
-PROJECT_ENV_NAMES=(.venv venv node_modules vendor target build .gradle)
+# adicionar aqui o nome da pasta de ambiente virtual/dependências/cache dela.
+PROJECT_ENV_NAMES=(
+  .venv venv node_modules vendor target build .gradle
+  __pycache__ .pytest_cache .mypy_cache .ruff_cache
+)
 
 # lê "scan_dirs" de um config.json (um caminho absoluto por linha). Usa jq se
 # tiver disponível; senão cai num parser simples (uma string por linha).
@@ -186,9 +191,11 @@ OPÇÕES:
   -h, --help                 mostra essa ajuda
 
 PROJECTS (config.json):
-  o alvo "projects" limpa .venv/venv/node_modules/vendor/target/build/.gradle
-  encontrados dentro das pastas listadas em "scan_dirs" no config.json (ao
-  lado deste script). Edite o config.json e rode de novo.
+  o alvo "projects" limpa ambiente/dependências (.venv, venv, node_modules,
+  vendor, target, build, .gradle) e cache de compilação/lint/teste
+  (__pycache__, .pytest_cache, .mypy_cache, .ruff_cache) encontrados dentro
+  das pastas listadas em "scan_dirs" no config.json (ao lado deste script).
+  Edite o config.json e rode de novo.
 
 NUNCA TOCA EM LOGIN/CREDENCIAL:
   git credentials, SSH, gh CLI, token do Hugging Face, login do Docker,
@@ -578,11 +585,11 @@ clean_ollama() {
 }
 
 # ---------------------------------------------------------------------------
-# limpador — ambientes virtuais de projeto (config.json)
+# limpador — ambiente virtual e cache de compilação de projeto (config.json)
 # ---------------------------------------------------------------------------
 clean_projects() {
   wanted projects || return 0
-  section "Ambientes virtuais de projeto (config.json)"
+  section "Ambiente virtual / cache de compilação de projeto (config.json)"
 
   local config_file="$SCRIPT_DIR/config.json"
   if [[ ! -f "$config_file" ]]; then
@@ -625,11 +632,11 @@ clean_projects() {
     if (( count > 0 )); then
       total=$((total + count))
     else
-      warn "nenhum ambiente virtual/dependência encontrado em: $dir"
+      warn "nenhum ambiente virtual/dependência/cache encontrado em: $dir"
     fi
   done
 
-  (( total > 0 )) && ok "total: $total pasta(s) de ambiente/dependência removida(s)"
+  (( total > 0 )) && ok "total: $total pasta(s) de ambiente/dependência/cache removida(s)"
 }
 
 # ---------------------------------------------------------------------------
@@ -830,9 +837,9 @@ fi
 
 if (( ${#REMOVED_PROJECT_ENVS[@]} > 0 )); then
   if $DRY_RUN; then
-    echo -e "\n  ${BOLD}ambientes virtuais de projeto que seriam removidos (${#REMOVED_PROJECT_ENVS[@]}):${RESET}"
+    echo -e "\n  ${BOLD}ambiente/cache de projeto que seria(m) removido(s) (${#REMOVED_PROJECT_ENVS[@]}):${RESET}"
   else
-    echo -e "\n  ${BOLD}ambientes virtuais de projeto removidos (${#REMOVED_PROJECT_ENVS[@]}):${RESET}"
+    echo -e "\n  ${BOLD}ambiente/cache de projeto removido(s) (${#REMOVED_PROJECT_ENVS[@]}):${RESET}"
   fi
   for env_path in "${REMOVED_PROJECT_ENVS[@]}"; do
     echo -e "    ${CYAN}-${RESET} $env_path"

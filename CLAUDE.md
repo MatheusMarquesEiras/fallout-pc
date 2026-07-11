@@ -14,7 +14,7 @@ Tudo que é distribuído pra quem for usar mora junto em `nuke/`:
 - `nuke/nuke.bat` — lançador duplo-clique pro Windows (acha Git Bash/WSL, chama `nuke.sh`)
 
 `README.md` na raiz é a documentação pra quem for usar (substituiu o antigo
-`nuke/LEIA-ME.txt`). `assets/logo/` guarda a identidade visual do projeto.
+`nuke/LEIA-ME.txt`). `imgs/` guarda a identidade visual do projeto.
 
 `.gitattributes` na raiz força LF em `.sh`/`.command` e CRLF em `.bat`,
 independente do `core.autocrlf` de quem clonar (crítico pro shebang/heredoc

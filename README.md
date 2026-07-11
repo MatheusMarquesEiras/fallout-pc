@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo/fallout-pc.png" alt="FALLOUT PC" width="420">
+  <img src="imgs/FalloutPC.png" alt="FALLOUT PC Logo" width="600">
 </p>
 
 <h1 align="center">FALLOUT PC</h1>
@@ -67,7 +67,7 @@ dado de verdade (não é só cache), então só confirme se tiver certeza.
 
 ```
 nuke/            script principal + lançadores por sistema operacional
-assets/logo/     identidade visual do projeto
+imgs/            identidade visual do projeto
 CLAUDE.md        contexto e convenções de desenvolvimento do projeto
 LICENSE          licença MIT
 ```

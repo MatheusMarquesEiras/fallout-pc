@@ -16,6 +16,9 @@ set -uo pipefail
 # mesmo sem a variável setada), pra não estourar com "set -u" em ambientes exóticos
 : "${HOME:=$(cd ~ 2>/dev/null && pwd || echo /tmp)}"
 
+# pasta onde o próprio script está (não o cwd) — é onde o config.json mora
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+
 # ---------------------------------------------------------------------------
 # estado / flags (default)
 # ---------------------------------------------------------------------------
@@ -25,7 +28,7 @@ SKIP_DOCKER_VOLUMES=false
 ONLY_LIST=""
 BANNER_ONLY=false
 NO_BANNER=false
-KNOWN_TARGETS="pip uv npm yarn pnpm deno bun go cargo php java ccache sccache vcpkg msys2 vs git huggingface ollama docker temp"
+KNOWN_TARGETS="pip uv npm yarn pnpm deno bun go cargo php java ccache sccache vcpkg msys2 vs git huggingface ollama projects docker temp"
 
 # ---------------------------------------------------------------------------
 # cores / helpers de output
@@ -99,6 +102,26 @@ wanted() {
   [[ ",${ONLY_LIST}," == *",$1,"* ]]
 }
 
+# Nomes de pasta de ambiente/dependência que cada linguagem cria dentro de um
+# projeto — 100% reconstruível (reinstala tudo de novo, sem perder código).
+# IMPORTANTE: toda vez que uma linguagem nova ganhar um limpador no nuke.sh,
+# adicionar aqui o nome da pasta de ambiente virtual/dependências dela.
+PROJECT_ENV_NAMES=(.venv venv node_modules vendor target build .gradle)
+
+# lê "scan_dirs" de um config.json (um caminho absoluto por linha). Usa jq se
+# tiver disponível; senão cai num parser simples (uma string por linha).
+read_scan_dirs() {
+  local config_file="$1"
+  [[ -f "$config_file" ]] || return 0
+
+  if has jq; then
+    jq -r '.scan_dirs[]? // empty' "$config_file" 2>/dev/null
+  else
+    grep -oE '^[[:space:]]*"([^"\\]|\\.)*"[[:space:]]*,?[[:space:]]*$' "$config_file" 2>/dev/null \
+      | sed -E 's/^[[:space:]]*"//; s/"[[:space:]]*,?[[:space:]]*$//'
+  fi
+}
+
 # path do %LOCALAPPDATA% do Windows, convertido pra path unix (WSL ou Git Bash). Vazio se não achar.
 get_win_localappdata() {
   case "$OS" in
@@ -149,8 +172,13 @@ OPÇÕES:
       --only <lista>         roda só os alvos da lista, separados por vírgula
                               alvos: pip,uv,npm,yarn,pnpm,deno,bun,go,cargo,php,java,
                                      ccache,sccache,vcpkg,msys2,vs,git,huggingface,
-                                     ollama,docker,temp
+                                     ollama,projects,docker,temp
   -h, --help                 mostra essa ajuda
+
+PROJECTS (config.json):
+  o alvo "projects" limpa .venv/venv/node_modules/vendor/target/build/.gradle
+  encontrados dentro das pastas listadas em "scan_dirs" no config.json (ao
+  lado deste script). Edite o config.json e rode de novo.
 
 NUNCA TOCA EM LOGIN/CREDENCIAL:
   git credentials, SSH, gh CLI, token do Hugging Face, login do Docker,
@@ -540,6 +568,60 @@ clean_ollama() {
 }
 
 # ---------------------------------------------------------------------------
+# limpador — ambientes virtuais de projeto (config.json)
+# ---------------------------------------------------------------------------
+clean_projects() {
+  wanted projects || return 0
+  section "Ambientes virtuais de projeto (config.json)"
+
+  local config_file="$SCRIPT_DIR/config.json"
+  if [[ ! -f "$config_file" ]]; then
+    skip "projects (sem $config_file)"
+    return
+  fi
+
+  local scan_dirs=()
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && scan_dirs+=("$line")
+  done < <(read_scan_dirs "$config_file")
+
+  if [[ ${#scan_dirs[@]} -eq 0 ]]; then
+    skip "projects (\"scan_dirs\" vazio em config.json)"
+    return
+  fi
+
+  local name_expr=()
+  local name
+  for name in "${PROJECT_ENV_NAMES[@]}"; do
+    if [[ ${#name_expr[@]} -eq 0 ]]; then
+      name_expr+=(-name "$name")
+    else
+      name_expr+=(-o -name "$name")
+    fi
+  done
+
+  local total=0
+  local dir
+  for dir in "${scan_dirs[@]}"; do
+    if [[ ! -d "$dir" ]]; then
+      warn "pasta configurada não existe: $dir"
+      continue
+    fi
+    local count=0
+    while IFS= read -r -d '' found; do
+      run rm -rf "$found" && ok "removido: $found" && count=$((count + 1))
+    done < <(find "$dir" -name .git -prune -o -type d \( "${name_expr[@]}" \) -prune -print0 2>/dev/null)
+    if (( count > 0 )); then
+      total=$((total + count))
+    else
+      warn "nenhum ambiente virtual/dependência encontrado em: $dir"
+    fi
+  done
+
+  (( total > 0 )) && ok "total: $total pasta(s) de ambiente/dependência removida(s)"
+}
+
+# ---------------------------------------------------------------------------
 # limpador — docker
 # ---------------------------------------------------------------------------
 clean_docker() {
@@ -707,6 +789,7 @@ clean_visual_studio
 clean_git
 clean_huggingface
 clean_ollama
+clean_projects
 clean_docker
 clean_temp
 

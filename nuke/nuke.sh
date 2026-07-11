@@ -215,10 +215,19 @@ clean_deno() {
 clean_bun() {
   wanted bun || return 0
   section "bun"
-  if has bun; then
-    run bun pm cache rm && ok "bun pm cache rm" || fail "bun pm cache rm falhou"
-  else
+  if ! has bun; then
     skip "bun"
+    return
+  fi
+
+  # "bun pm cache" exige um package.json no diretório atual (mesmo só pra
+  # imprimir o caminho), então não dá pra usar o comando direto daqui —
+  # limpa o diretório de cache padrão do bun na mão, igual cargo/hf/ollama.
+  local bun_cache="${BUN_INSTALL:-$HOME/.bun}/install/cache"
+  if [[ -d "$bun_cache" ]]; then
+    run rm -rf "${bun_cache:?}" && ok "removido cache do bun: $bun_cache"
+  else
+    warn "bun achado, mas sem cache em $bun_cache"
   fi
 }
 

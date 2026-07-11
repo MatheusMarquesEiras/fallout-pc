@@ -1,4 +1,4 @@
 {
   "_info": "Coloque aqui os caminhos absolutos das pastas onde o nuke.sh deve procurar por ambientes virtuais/dependências de projeto (.venv, venv, node_modules, vendor, target, build, .gradle) pra limpar. Use barra normal (/) mesmo no Windows, ex: C:/Users/seu-nome/Projetos. Um caminho por linha, entre aspas. Deixe a lista vazia para desativar.",
-  "scan_dirs": ["C:\\Users\\mathe\\OneDrive\\Desktop\\git"]
+  "scan_dirs": []
 }

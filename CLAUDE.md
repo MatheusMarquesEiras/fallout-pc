@@ -1,4 +1,4 @@
-# Projeto: nuke.sh — limpeza de cache de dev multiplataforma
+# Projeto: FALLOUT PC (nuke.sh) — limpeza de cache de dev multiplataforma
 
 ## O que é
 Script bash que limpa cache de ferramentas de dev (pip, uv, npm, yarn, pnpm,
@@ -12,7 +12,9 @@ Tudo que é distribuído pra quem for usar mora junto em `nuke/`:
 - `nuke/nuke.sh` — script principal, roda em qualquer bash (Linux/macOS/WSL/Git Bash)
 - `nuke/nuke.command` — lançador duplo-clique pro macOS (abre Terminal, chama `./nuke.sh`)
 - `nuke/nuke.bat` — lançador duplo-clique pro Windows (acha Git Bash/WSL, chama `nuke.sh`)
-- `nuke/LEIA-ME.txt` — instrução por sistema pra quem for usar
+
+`README.md` na raiz é a documentação pra quem for usar (substituiu o antigo
+`nuke/LEIA-ME.txt`). `assets/logo/` guarda a identidade visual do projeto.
 
 `.gitattributes` na raiz força LF em `.sh`/`.command` e CRLF em `.bat`,
 independente do `core.autocrlf` de quem clonar (crítico pro shebang/heredoc

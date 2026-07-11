@@ -1,0 +1,51 @@
+NUKE — limpeza de cache de dev e temporários
+==============================================
+
+O que isso faz
+--------------
+Limpa cache de ferramentas de desenvolvimento (pip, uv, npm, yarn, pnpm, go,
+cargo/rust, ccache, sccache, vcpkg, MSYS2, Visual Studio/NuGet, git, GitHub CLI,
+Hugging Face) + containers/imagens/cache do Docker + arquivos temporários do
+sistema. A ideia é liberar espaço em disco.
+
+NUNCA mexe em login, senha ou token de nada (git, gh, Docker, Hugging Face,
+npm, cargo). Isso é regra fixa do script, não muda com nenhuma opção.
+
+
+Como rodar — escolha o arquivo do seu sistema
+----------------------------------------------
+Windows  → clique duas vezes em "nuke.bat"
+           (precisa ter Git Bash ou WSL instalado; se não tiver, o próprio
+           script avisa e te manda o link/comando pra instalar)
+
+macOS    → clique duas vezes em "nuke.command"
+           (funciona direto, sem instalar nada a mais)
+
+Linux    → clique duas vezes em "nuke.sh"
+           Se o seu gerenciador de arquivos perguntar "Executar" ou "Exibir",
+           escolha "Executar" (ou "Executar no terminal").
+           Se ele só abrir num editor de texto, abra um terminal nessa pasta
+           e rode:
+               chmod +x nuke.sh
+               ./nuke.sh
+
+
+O que esperar ao rodar
+-----------------------
+1. Ele pergunta se você quer ver antes o que seria feito (recomendado — não
+   apaga nada nessa etapa, só mostra).
+2. Depois pergunta se quer rodar de verdade.
+3. No final mostra quanto espaço foi liberado.
+
+Se aparecer um aviso sobre "volumes do Docker", preste atenção: isso apaga
+dado de verdade (não é só cache), então só confirme se tiver certeza.
+
+
+Uso avançado (terminal)
+------------------------
+Quem preferir linha de comando pode chamar o nuke.sh direto, com mais opções:
+
+    ./nuke.sh --dry-run                    # só mostra, não apaga nada
+    ./nuke.sh --only pip,npm,go,cargo       # limpa só o que quiser
+    ./nuke.sh --yes                          # não pergunta nada
+    ./nuke.sh --help                         # lista todas as opções

@@ -29,6 +29,7 @@ ONLY_LIST=""
 BANNER_ONLY=false
 NO_BANNER=false
 KNOWN_TARGETS="pip uv npm yarn pnpm deno bun go cargo php java ccache sccache vcpkg msys2 vs git huggingface ollama projects docker temp"
+REMOVED_PROJECT_ENVS=()
 
 # ---------------------------------------------------------------------------
 # cores / helpers de output
@@ -609,7 +610,8 @@ clean_projects() {
     fi
     local count=0
     while IFS= read -r -d '' found; do
-      run rm -rf "$found" && ok "removido: $found" && count=$((count + 1))
+      run rm -rf "$found" && ok "removido: $found" \
+        && count=$((count + 1)) && REMOVED_PROJECT_ENVS+=("$found")
     done < <(find "$dir" -name .git -prune -o -type d \( "${name_expr[@]}" \) -prune -print0 2>/dev/null)
     if (( count > 0 )); then
       total=$((total + count))
@@ -815,6 +817,17 @@ if ! $DRY_RUN && [[ -n "$space_before" ]]; then
   fi
 else
   echo -e "  ${CYAN}(sem medição em modo dry-run)${RESET}"
+fi
+
+if (( ${#REMOVED_PROJECT_ENVS[@]} > 0 )); then
+  if $DRY_RUN; then
+    echo -e "\n  ${BOLD}ambientes virtuais de projeto que seriam removidos (${#REMOVED_PROJECT_ENVS[@]}):${RESET}"
+  else
+    echo -e "\n  ${BOLD}ambientes virtuais de projeto removidos (${#REMOVED_PROJECT_ENVS[@]}):${RESET}"
+  fi
+  for env_path in "${REMOVED_PROJECT_ENVS[@]}"; do
+    echo -e "    ${CYAN}-${RESET} $env_path"
+  done
 fi
 
 echo -e "\n💥 nuke completo.\n"

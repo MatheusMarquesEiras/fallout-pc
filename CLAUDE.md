@@ -48,20 +48,33 @@ todo, incluindo as barras invertidas, e não acha.
 Fix aplicado: como já tem `cd /d "%~dp0"` no topo, as duas chamadas pro bash
 viraram `"%BASH_EXE%" ./nuke.sh` (caminho relativo, sem `%~dp0`).
 
+Segundo bug: `nuke.bat` testava `where bash` antes dos caminhos fixos do
+Git. Em máquina com WSL instalado, o PATH "de Explorer" (duplo-clique
+normal) costuma achar `C:\Windows\System32\bash.exe` (stub do WSL) antes
+do Git Bash — mesmo com os dois instalados. Isso fazia o `nuke.sh` rodar
+dentro do WSL, que só enxerga ferramentas instaladas ali dentro (pip/npm/
+go/cargo do Windows ficavam invisíveis e não eram limpos). Fix aplicado:
+os caminhos fixos do Git Bash agora são testados **antes** do `where
+bash`; só cai em `where bash` (podendo achar o WSL) se o Git Bash não
+estiver instalado em nenhum dos 3 locais conhecidos. `nuke.sh` também
+ganhou um aviso explícito quando detecta `OS=wsl`, avisando que só o lado
+Linux está sendo limpo.
+
 ## Validação desta sessão (confirmado numa máquina Windows real)
 Máquina de teste: Windows 11, com Git Bash **e** WSL2/Ubuntu instalados —
 deu pra cobrir os dois caminhos de detecção de bash sem precisar simular nada:
 
-- **`where bash` → Git Bash**: quando o PATH do processo que chama `nuke.bat`
-  tem os diretórios do Git na frente (ex: aberto de dentro de um shell Git
-  Bash), `where bash` acha o Git Bash primeiro. `OS` detectado como
-  `gitbash`. Preview (`--dry-run`) e execução real, ambos OK.
-- **`where bash` → WSL**: quando o PATH é o do usuário/Explorer "puro"
-  (sem os diretórios do Git na frente — é o caso normal de duplo-clique),
-  `where bash` acha primeiro o `C:\Windows\System32\bash.exe` (stub do WSL).
-  Esse stub traduz sozinho o cwd do Windows pro equivalente `/mnt/c/...` e
-  achou o `nuke.sh` certinho. `OS` detectado como `wsl` (via `/proc/version`
-  contendo "microsoft"). Preview e execução real, ambos OK.
+- **Git Bash via caminho fixo**: com o Git Bash instalado em qualquer um dos
+  3 locais conhecidos, `nuke.bat` acha ele antes de qualquer `where bash` —
+  `OS` detectado como `gitbash`, e por isso enxerga as ferramentas instaladas
+  no Windows (pip/npm/go/cargo/dotnet). Preview e execução real, ambos OK.
+- **`where bash` → WSL (fallback)**: só acontece se o Git Bash não estiver
+  em nenhum dos 3 caminhos fixos. Nesse caso, `where bash` costuma achar
+  `C:\Windows\System32\bash.exe` (stub do WSL) — esse stub traduz sozinho o
+  cwd do Windows pro equivalente `/mnt/c/...` e acha o `nuke.sh` certinho.
+  `OS` detectado como `wsl` (via `/proc/version` contendo "microsoft"), e o
+  script avisa explicitamente que só o lado Linux está sendo limpo. Preview
+  e execução real, ambos OK (dentro do escopo do WSL).
 - **Fallback pro caminho fixo do Git** (`if not defined BASH_EXE if exist
   "%ProgramFiles%\Git\bin\bash.exe"...`): testado forçando um PATH restrito
   (sem nada que resolva `bash` via `where`) — cai certinho no caminho fixo

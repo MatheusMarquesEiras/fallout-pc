@@ -1,4 +1,5 @@
 {
-  "_info": "Coloque aqui os caminhos absolutos das pastas onde o nuke.sh deve procurar por ambientes virtuais/dependências (.venv, venv, node_modules, vendor, target, build, .gradle) e cache de compilação/lint/teste (__pycache__, .pytest_cache, .mypy_cache, .ruff_cache) de projeto pra limpar. Use barra normal (/) mesmo no Windows, ex: C:/Users/seu-nome/Projetos. Um caminho por linha, entre aspas. Deixe a lista vazia para desativar.",
-  "scan_dirs": []
+  "_info": "scan_dirs: caminhos absolutos das pastas onde o nuke.sh deve procurar por ambientes virtuais/dependências (.venv, venv, node_modules, vendor, target, build, .gradle) e cache de compilação/lint/teste (__pycache__, .pytest_cache, .mypy_cache, .ruff_cache) de projeto pra limpar. Use barra normal (/) mesmo no Windows, ex: C:/Users/seu-nome/Projetos. skip_targets: nomes de alvos (os mesmos do --only, ex: ollama, docker, npm) que o nuke.sh nunca deve limpar por padrão. Um valor por linha, entre aspas. Deixe as listas vazias para desativar.",
+  "scan_dirs": [],
+  "skip_targets": []
 }

@@ -30,6 +30,7 @@ BANNER_ONLY=false
 NO_BANNER=false
 KNOWN_TARGETS="pip uv npm yarn pnpm deno bun go cargo php java ccache sccache vcpkg msys2 vs git huggingface ollama projects docker temp"
 REMOVED_PROJECT_ENVS=()
+SKIP_LIST=""
 
 # ---------------------------------------------------------------------------
 # cores / helpers de output
@@ -99,8 +100,12 @@ confirm() {
 }
 
 wanted() {
-  [[ -z "$ONLY_LIST" ]] && return 0
-  [[ ",${ONLY_LIST}," == *",$1,"* ]]
+  if [[ -n "$ONLY_LIST" ]]; then
+    [[ ",${ONLY_LIST}," == *",$1,"* ]]
+    return
+  fi
+  [[ ",${SKIP_LIST}," == *",$1,"* ]] && return 1
+  return 0
 }
 
 # Nomes de pasta que cada linguagem/ferramenta cria dentro de um projeto —
@@ -114,24 +119,25 @@ PROJECT_ENV_NAMES=(
   __pycache__ .pytest_cache .mypy_cache .ruff_cache
 )
 
-# lê "scan_dirs" de um config.json (um caminho absoluto por linha). Usa jq se
-# tiver disponível; senão cai num parser simples (uma string por linha).
-read_scan_dirs() {
-  local config_file="$1"
+# lê um array de strings de um campo do config.json (ex: "scan_dirs" ou
+# "skip_targets"), um valor por linha. Usa jq se tiver disponível; senão cai
+# num parser simples que não depende de formatação (compacto ou "bonito").
+read_json_array() {
+  local config_file="$1" key="$2"
   [[ -f "$config_file" ]] || return 0
 
   if has jq; then
-    jq -r '.scan_dirs[]? // empty' "$config_file" 2>/dev/null
+    jq -r --arg k "$key" '.[$k][]? // empty' "$config_file" 2>/dev/null
     return
   fi
 
   # parser simples sem jq: achata o arquivo numa linha só (não depende de
   # formatação — funciona tanto compacto ["a","b"] quanto bonito, um por
-  # linha), pega só o conteúdo entre os colchetes de "scan_dirs" e extrai
-  # cada string entre aspas de dentro.
+  # linha), pega só o conteúdo entre os colchetes do campo e extrai cada
+  # string entre aspas de dentro.
   local flat array_part
   flat=$(tr '\n' ' ' < "$config_file")
-  array_part=$(printf '%s' "$flat" | sed -E 's/.*"scan_dirs"[[:space:]]*:[[:space:]]*\[([^]]*)\].*/\1/')
+  array_part=$(printf '%s' "$flat" | sed -E "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\[([^]]*)\].*/\1/")
   [[ "$array_part" == "$flat" ]] && return 0
 
   printf '%s' "$array_part" | grep -oE '"([^"\\]|\\.)*"' | sed -E 's/^"//; s/"$//'
@@ -190,12 +196,14 @@ OPÇÕES:
                                      ollama,projects,docker,temp
   -h, --help                 mostra essa ajuda
 
-PROJECTS (config.json):
-  o alvo "projects" limpa ambiente/dependências (.venv, venv, node_modules,
-  vendor, target, build, .gradle) e cache de compilação/lint/teste
-  (__pycache__, .pytest_cache, .mypy_cache, .ruff_cache) encontrados dentro
-  das pastas listadas em "scan_dirs" no config.json (ao lado deste script).
-  Edite o config.json e rode de novo.
+CONFIG.JSON (ao lado deste script):
+  scan_dirs      pastas onde o alvo "projects" procura e apaga ambiente/
+                 dependências (.venv, venv, node_modules, vendor, target,
+                 build, .gradle) e cache de compilação/lint/teste
+                 (__pycache__, .pytest_cache, .mypy_cache, .ruff_cache)
+  skip_targets   alvos que nunca rodam por padrão (ex: ["ollama"] pra nunca
+                 limpar o cache do Ollama) — --only explícito ainda funciona
+                 pra esses alvos, só o comportamento "padrão" é que pula
 
 NUNCA TOCA EM LOGIN/CREDENCIAL:
   git credentials, SSH, gh CLI, token do Hugging Face, login do Docker,
@@ -591,16 +599,15 @@ clean_projects() {
   wanted projects || return 0
   section "Ambiente virtual / cache de compilação de projeto (config.json)"
 
-  local config_file="$SCRIPT_DIR/config.json"
-  if [[ ! -f "$config_file" ]]; then
-    skip "projects (sem $config_file)"
+  if [[ ! -f "$CONFIG_FILE" ]]; then
+    skip "projects (sem $CONFIG_FILE)"
     return
   fi
 
   local scan_dirs=()
   while IFS= read -r line; do
     [[ -n "$line" ]] && scan_dirs+=("$line")
-  done < <(read_scan_dirs "$config_file")
+  done < <(read_json_array "$CONFIG_FILE" "scan_dirs")
 
   if [[ ${#scan_dirs[@]} -eq 0 ]]; then
     skip "projects (\"scan_dirs\" vazio em config.json)"
@@ -751,6 +758,16 @@ if [[ -n "$ONLY_LIST" ]]; then
     [[ " $KNOWN_TARGETS " == *" $t "* ]] || warn "alvo desconhecido em --only: '$t' (válidos: $KNOWN_TARGETS)"
   done
 fi
+
+# "skip_targets" no config.json: alvos que nunca rodam por padrão (ex:
+# ["ollama"] pra nunca limpar o cache do Ollama). --only explícito sempre
+# tem prioridade sobre isso.
+CONFIG_FILE="$SCRIPT_DIR/config.json"
+while IFS= read -r t; do
+  [[ -z "$t" ]] && continue
+  [[ " $KNOWN_TARGETS " == *" $t "* ]] || warn "alvo desconhecido em \"skip_targets\" do config.json: '$t' (válidos: $KNOWN_TARGETS)"
+  SKIP_LIST="${SKIP_LIST:+$SKIP_LIST,}$t"
+done < <(read_json_array "$CONFIG_FILE" "skip_targets")
 
 # ---------------------------------------------------------------------------
 # detecção de ambiente

@@ -90,6 +90,22 @@ nome; use barra normal `/` mesmo no Windows):
 Com isso configurado, `./nuke.sh` já inclui esse alvo automaticamente (ou
 rode só ele com `./nuke.sh --only projects`). Lista vazia = desativado.
 
+### Pulando alvos por padrão (exceções)
+
+Se tem algo que você nunca quer que o script limpe automaticamente (ex: o
+cache do Ollama, porque os modelos demoram pra baixar de novo), liste o
+nome do alvo em `skip_targets` no mesmo [`nuke/config.json`](nuke/config.json):
+
+```json
+{
+  "skip_targets": ["ollama"]
+}
+```
+
+Os nomes são os mesmos do `--only` (veja `./nuke.sh --help`). Isso só muda
+o comportamento *padrão* — se você pedir explicitamente `./nuke.sh --only
+ollama`, ele limpa mesmo assim.
+
 ## Estrutura do repositório
 
 ```

@@ -23,6 +23,11 @@ E de qualquer cache de compilação/lint/teste que ela gere dentro do projeto
 suporte a um gerenciador Ruby, adicionar `vendor/bundle` ou equivalente).
 Isso é regra fixa do projeto, não só desta sessão.
 
+`nuke/config.json` também aceita `skip_targets` (lista de nomes de alvo,
+os mesmos do `--only`) — alvos ali nunca rodam por padrão (ex: `["ollama"]`
+pra nunca limpar o cache do Ollama). `--only` explícito sempre tem
+prioridade sobre `skip_targets` (ver `wanted()` em `nuke.sh`).
+
 ## Regra permanente: sempre atualizar o README
 Toda vez que algo for adicionado, mudado ou removido no script (novo
 limpador, nova flag, novo comportamento), atualizar o `README.md` na
@@ -33,9 +38,10 @@ Tudo que é distribuído pra quem for usar mora junto em `nuke/`:
 - `nuke/nuke.sh` — script principal, roda em qualquer bash (Linux/macOS/WSL/Git Bash)
 - `nuke/nuke.command` — lançador duplo-clique pro macOS (abre Terminal, chama `./nuke.sh`)
 - `nuke/nuke.bat` — lançador duplo-clique pro Windows (acha Git Bash/WSL, chama `nuke.sh`)
-- `nuke/config.json` — onde o usuário lista `scan_dirs` pro alvo `projects`
-  (vazio por padrão; `nuke.sh` usa `jq` se tiver, senão um parser simples
-  que espera uma string por linha — ver `read_scan_dirs()`)
+- `nuke/config.json` — `scan_dirs` (pastas pro alvo `projects`) e
+  `skip_targets` (alvos que nunca rodam por padrão); ambos vazios por
+  padrão. `nuke.sh` usa `jq` se tiver, senão um parser simples que espera
+  uma string por linha — ver `read_json_array()`
 
 `README.md` na raiz é a documentação pra quem for usar (substituiu o antigo
 `nuke/LEIA-ME.txt`). `imgs/` guarda a identidade visual do projeto.

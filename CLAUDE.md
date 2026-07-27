@@ -3,11 +3,26 @@
 ## O que é
 Script bash que limpa cache de ferramentas de dev (pip, uv, npm, yarn, pnpm,
 deno, bun, go, cargo/rust, PHP/Composer, Java/Maven/Gradle, ccache, sccache,
-vcpkg, MSYS2, Visual Studio/NuGet, git, GitHub CLI, Hugging Face, Ollama),
-Docker (containers/imagens/build cache/volumes), ambientes virtuais de
-projeto (via `nuke/config.json`, alvo `projects` — ver abaixo) e
+vcpkg, MSYS2, Visual Studio/NuGet, git, Git LFS, GitHub CLI, Hugging Face,
+Ollama), Docker (containers/imagens/build cache/volumes), ambientes virtuais
+de projeto (via `nuke/config.json`, alvo `projects` — ver abaixo) e
 temporários do sistema, pra liberar espaço em disco. Vai ser distribuído
 pra várias pessoas em Windows, macOS e Linux.
+
+## Git LFS (dentro do alvo "git")
+Pra cada repositório com LFS em uso (`.git/lfs` existe), além do `git gc`
+já existente: apaga `.git/lfs/tmp` (lixo de smudge/clean interrompido no
+meio — ex: rehash sem espaço em disco, que é exatamente o que já causou
+um incidente real de disco cheio) e roda `git lfs prune` (sem `--force`,
+então nunca mexe em objeto que ainda não foi enviado pro remoto). Não
+adiciona flag/alvo novo — é parte do `clean_git()`.
+
+`git-xet` (instalado nesta máquina) é só um *custom transfer agent* do
+git-lfs (protocolo de upload/download, registrado via
+`lfs.customtransfer.xet.*` no git config) — não tem cache/storage próprio
+pra limpar; os dados dele ficam dentro do `.git/lfs/objects` normal do
+LFS, já coberto acima. Confirmado checando o binário e o filesystem, não
+achado nenhuma pasta de cache separada do git-xet nesta máquina.
 
 ## Alvo "projects" (config.json) — regra permanente
 O alvo `projects` lê `nuke/config.json` (`scan_dirs`: lista de pastas

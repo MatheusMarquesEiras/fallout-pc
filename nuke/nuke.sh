@@ -512,12 +512,25 @@ clean_git() {
   fi
 
   if has git; then
-    local count=0
+    local has_lfs=false
+    has git-lfs && has_lfs=true
+
+    local count=0 lfs_count=0
     while IFS= read -r -d '' gitdir; do
       local repo
       repo="$(dirname "$gitdir")"
       run git -C "$repo" gc --prune=now --quiet 2>/dev/null
       count=$((count + 1))
+
+      # .git/lfs/tmp acumula lixo de operações de smudge/clean interrompidas
+      # (ex: sem espaço em disco no meio de um rehash) — sempre seguro de
+      # apagar. "git lfs prune" (sem --force) só remove objetos locais que
+      # já foram enviados pro remoto, nunca mexe em nada não enviado ainda.
+      if $has_lfs && [[ -d "$gitdir/lfs" ]]; then
+        [[ -d "$gitdir/lfs/tmp" ]] && run rm -rf "${gitdir:?}/lfs/tmp"
+        run git -C "$repo" lfs prune 2>/dev/null
+        lfs_count=$((lfs_count + 1))
+      fi
     done < <(find "$HOME" -maxdepth 6 -type d \
                 \( -name node_modules -o -name .cache -o -name target -o -name dist -o -name build -o -name venv -o -name .venv \) -prune \
                 -o -type d -name ".git" -print0 2>/dev/null)
@@ -526,6 +539,11 @@ clean_git() {
       ok "rodou 'git gc --prune=now' em $count repositório(s) (compacta, não apaga histórico)"
     else
       warn "nenhum repositório git encontrado em $HOME pra compactar"
+    fi
+    if (( lfs_count > 0 )); then
+      ok "limpou .git/lfs/tmp e rodou 'git lfs prune' em $lfs_count repositório(s) com LFS"
+    elif ! $has_lfs; then
+      skip "git-lfs"
     fi
     keep "~/.git-credentials e credential helpers"
   else
